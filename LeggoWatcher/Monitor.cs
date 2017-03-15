@@ -32,7 +32,10 @@ namespace LeggoWatcher
             watcher = new FileSystemWatcher();
             watcher.Path = this.watchedPath;
             //watcher.Filter = @"\.txt |\.spl |\.rcv";
-            watcher.InternalBufferSize = 32768;
+            watcher.InternalBufferSize = 16384;
+            //watcher.NotifyFilter = NotifyFilters.CreationTime;
+            watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName;
+            watcher.IncludeSubdirectories = false;
             watcher.Filter = "*.*";
             watcher.Created += Watcher_FileCreated;
             watcher.Error += Watcher_Error;
@@ -94,10 +97,23 @@ namespace LeggoWatcher
 
                         }
 
-                        // Copy file from src to dest
-                        File.Copy(file_src_path, file_dest_path);
+                        int count = 1;
 
-                        using (StreamWriter sw = File.AppendText(file_dest_path))
+                        string fileNameOnly = Path.GetFileNameWithoutExtension(file_dest_path);
+                        string extension = Path.GetExtension(file_dest_path);
+                        string path = Path.GetDirectoryName(file_dest_path);
+                        string newFullPath = file_dest_path;
+
+                        while (File.Exists(newFullPath))
+                        {
+                            string tempFileName = string.Format("{0}({1})", fileNameOnly, count++);
+                            newFullPath = Path.Combine(path, tempFileName + extension);
+                        }
+                        //Copy file from src to dest
+                        File.Copy(file_src_path, newFullPath);
+                        File.Delete(file_src_path);
+
+                        using (StreamWriter sw = File.AppendText(newFullPath))
                         {
                             sw.WriteLine(date_modified_str);
                         }

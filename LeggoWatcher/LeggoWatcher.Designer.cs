@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+           
             // 
             // LeggoWatcher
             // 
@@ -36,5 +37,7 @@
         }
 
         #endregion
+
+        
     }
 }
